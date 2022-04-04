@@ -1,5 +1,4 @@
-import { Box, Button, Flex } from "@chakra-ui/react";
-import Link from "next/link";
+import { Box, Button, Flex, Link } from "@chakra-ui/react";
 import React from "react";
 import { useLogoutMutation, useMeQuery } from "../generated/graphql";
 import { isServer } from "../utils/isServer";
@@ -16,12 +15,10 @@ const NavBar = () => {
   } else if (!data?.me) {
     body = (
       <>
-        <Box mr={2} color={"white"}>
-          <Link href={"/login"}>login</Link>
-        </Box>
-        <Box mr={2} color={"white"}>
-          <Link href={"/register"}>register</Link>
-        </Box>
+        <Link mr={2} href={"/login"}>
+          login
+        </Link>
+        <Link href={"/register"}>register</Link>
       </>
     );
   } else {
