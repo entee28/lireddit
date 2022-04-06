@@ -1,55 +1,44 @@
 import { Post } from "../entities/Post";
-import { MyContext } from "src/types";
-import { Arg, Ctx, Mutation, Query, Resolver } from "type-graphql";
+import { Arg, Mutation, Query, Resolver } from "type-graphql";
 
 @Resolver()
 export class PostResolver {
   @Query(() => [Post])
-  async posts(@Ctx() { em }: MyContext): Promise<Post[]> {
-    return em.find(Post, {});
+  async posts(): Promise<Post[]> {
+    return Post.find();
   }
 
   @Query(() => Post, { nullable: true })
-  post(@Arg("id") _id: number, @Ctx() { em }: MyContext): Promise<Post | null> {
-    return em.findOne(Post, { _id });
+  post(@Arg("id") _id: number): Promise<Post | null> {
+    return Post.findOne({ where: { _id } });
   }
 
   @Mutation(() => Post)
   async createPost(
-    @Arg("title", () => String) title: string,
-    @Ctx() { em }: MyContext
+    @Arg("title", () => String) title: string
   ): Promise<Post | null> {
-    //@ts-ignore
-    const post = em.create(Post, { title });
-    await em.persistAndFlush(post);
-
-    return em.findOne(Post, { title });
+    return Post.create({ title }).save();
   }
 
   @Mutation(() => Post, { nullable: true })
   async updatePost(
     @Arg("id") _id: number,
-    @Arg("title", () => String, { nullable: true }) title: string,
-    @Ctx() { em }: MyContext
+    @Arg("title", () => String, { nullable: true }) title: string
   ): Promise<Post | null> {
-    const post = await em.findOne(Post, { _id });
+    const post = await Post.findOne({ where: { _id } });
     if (!post) {
       return null;
     }
 
     if (typeof title !== "undefined") {
-      post.title = title;
-      await em.persistAndFlush(post);
+      await Post.update({ _id }, { title });
     }
     return post;
   }
 
   @Mutation(() => Boolean)
-  async deletePost(
-    @Arg("id") _id: number,
-    @Ctx() { em }: MyContext
-  ): Promise<boolean> {
-    await em.nativeDelete(Post, { _id });
+  async deletePost(@Arg("id") _id: number): Promise<boolean> {
+    await Post.delete(_id);
     return true;
   }
 }

@@ -1,6 +1,5 @@
-import { MikroORM } from "@mikro-orm/core";
+import "reflect-metadata";
 import { COOKIE_NAME, __prod__ } from "./constants";
-import mikroOrmConfig from "./mikro-orm.config";
 import express from "express";
 import { ApolloServer } from "apollo-server-express";
 import { buildSchema } from "type-graphql";
@@ -12,11 +11,21 @@ import connectRedis from "connect-redis";
 import { MyContext } from "./types";
 import cors from "cors";
 import Redis from "ioredis";
+import { DataSource } from "typeorm";
+import { Post } from "./entities/Post";
+import { User } from "./entities/User";
 
 const main = async () => {
-  const orm = await MikroORM.init(mikroOrmConfig);
-  // await orm.em.nativeDelete(User, {});
-  orm.getMigrator().up();
+  const myDataSource = new DataSource({
+    type: "postgres",
+    database: "lireddit2",
+    username: "postgres",
+    password: "200182",
+    logging: true,
+    synchronize: true,
+    entities: [Post, User],
+  });
+  await myDataSource.initialize();
 
   const app = express();
 
@@ -32,10 +41,8 @@ const main = async () => {
   // app.set("Access-Control-Allow-Credentials", true);
 
   const RedisStore = connectRedis(session);
-
-  // redis@v4
   const redis = new Redis();
-  redis.connect().catch(console.error);
+  // redis.connect().catch(console.error);
 
   app.use(
     session({
@@ -61,7 +68,7 @@ const main = async () => {
       resolvers: [HelloResolver, PostResolver, UserResolver],
       validate: false,
     }),
-    context: ({ req, res }): MyContext => ({ em: orm.em, req, res, redis }),
+    context: ({ req, res }): MyContext => ({ req, res, redis }),
   });
 
   await apolloServer.start();
