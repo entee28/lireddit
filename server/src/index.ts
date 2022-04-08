@@ -14,18 +14,22 @@ import Redis from "ioredis";
 import { DataSource } from "typeorm";
 import { Post } from "./entities/Post";
 import { User } from "./entities/User";
+import path from "path";
+
+export const myDataSource = new DataSource({
+  type: "postgres",
+  database: "lireddit2",
+  username: "postgres",
+  password: "200182",
+  logging: true,
+  synchronize: true,
+  entities: [Post, User],
+  migrations: [path.join(__dirname, "./migrations/*")],
+});
 
 const main = async () => {
-  const myDataSource = new DataSource({
-    type: "postgres",
-    database: "lireddit2",
-    username: "postgres",
-    password: "200182",
-    logging: true,
-    synchronize: true,
-    entities: [Post, User],
-  });
   await myDataSource.initialize();
+  await myDataSource.runMigrations();
 
   const app = express();
 
@@ -37,12 +41,9 @@ const main = async () => {
   );
 
   app.set("trust proxy", !__prod__);
-  // app.set("Access-Control-Allow-Origin", "http://localhost:3000/");
-  // app.set("Access-Control-Allow-Credentials", true);
 
   const RedisStore = connectRedis(session);
   const redis = new Redis();
-  // redis.connect().catch(console.error);
 
   app.use(
     session({
