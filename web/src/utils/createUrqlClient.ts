@@ -6,7 +6,7 @@ import {
   LoginMutation,
   RegisterMutation,
 } from "../generated/graphql";
-import { cacheExchange, Resolver } from "@urql/exchange-graphcache";
+import { cacheExchange, Entity, Resolver } from "@urql/exchange-graphcache";
 import { betterUpdateQuery } from "./betterUpdateQuery";
 import { pipe, tap } from "wonka";
 import { Exchange } from "urql";
@@ -36,16 +36,30 @@ export const cursorPagination = (): Resolver => {
     }
 
     const fieldKey = `${fieldName}(${stringifyVariables(fieldArgs)})`;
-    const isInCache = cache.resolve(entityKey, fieldKey);
+    const isInCache = cache.resolve(
+      cache.resolve(entityKey, fieldKey) as Entity,
+      "posts"
+    );
     info.partial = !isInCache;
+    let hasMore = true;
 
     const results: Array<string> = [];
     fieldInfos.forEach((fi) => {
-      const data = cache.resolve(entityKey, fi.fieldKey) as Array<string>;
+      const key = cache.resolve(entityKey, fi.fieldKey) as Entity;
+      const data = cache.resolve(key, "posts") as Array<string>;
+      const _hasMore = cache.resolve(key, "hasMore");
+      console.log(_hasMore);
+      if (!_hasMore) {
+        hasMore = _hasMore as boolean;
+      }
       results.push(...data);
     });
 
-    return results;
+    return {
+      __typename: "PaginatedPosts",
+      hasMore,
+      posts: results,
+    };
   };
 };
 
@@ -57,6 +71,9 @@ export const createUrqlClient = (ssrExchange: any) => ({
   exchanges: [
     dedupExchange,
     cacheExchange({
+      keys: {
+        PaginatedPosts: () => null,
+      },
       resolvers: {
         Query: {
           posts: cursorPagination(),

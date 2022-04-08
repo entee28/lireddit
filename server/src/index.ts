@@ -31,6 +31,8 @@ const main = async () => {
   await myDataSource.initialize();
   await myDataSource.runMigrations();
 
+  // await Post.delete({});
+
   const app = express();
 
   app.use(
