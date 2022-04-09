@@ -35,12 +35,12 @@ const main = async () => {
 
   const app = express();
 
-  app.use(
-    cors({
-      origin: "http://localhost:3000",
-      credentials: true,
-    })
-  );
+  // app.use(
+  //   cors({
+  //     origin: "http://localhost:3000",
+  //     credentials: true,
+  //   })
+  // );
 
   app.set("trust proxy", !__prod__);
 
@@ -77,7 +77,7 @@ const main = async () => {
   await apolloServer.start();
   apolloServer.applyMiddleware({
     app,
-    cors: false,
+    // cors: false,
   });
 
   app.listen(4000, () => {
