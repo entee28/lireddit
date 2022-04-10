@@ -15,6 +15,7 @@ import { DataSource } from "typeorm";
 import { Post } from "./entities/Post";
 import { User } from "./entities/User";
 import path from "path";
+import { Updoot } from "./entities/Updoot";
 
 export const myDataSource = new DataSource({
   type: "postgres",
@@ -23,7 +24,7 @@ export const myDataSource = new DataSource({
   password: "200182",
   logging: true,
   synchronize: true,
-  entities: [Post, User],
+  entities: [Post, User, Updoot],
   migrations: [path.join(__dirname, "./migrations/*")],
 });
 
@@ -35,12 +36,12 @@ const main = async () => {
 
   const app = express();
 
-  // app.use(
-  //   cors({
-  //     origin: "http://localhost:3000",
-  //     credentials: true,
-  //   })
-  // );
+  app.use(
+    cors({
+      origin: "http://localhost:3000",
+      credentials: true,
+    })
+  );
 
   app.set("trust proxy", !__prod__);
 
@@ -77,7 +78,7 @@ const main = async () => {
   await apolloServer.start();
   apolloServer.applyMiddleware({
     app,
-    // cors: false,
+    cors: false,
   });
 
   app.listen(4000, () => {

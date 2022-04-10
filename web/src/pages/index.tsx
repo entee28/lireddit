@@ -1,7 +1,3 @@
-import { withUrqlClient } from "next-urql";
-import { createUrqlClient } from "../utils/createUrqlClient";
-import { usePostsQuery } from "../generated/graphql";
-import Layout from "../components/Layout";
 import {
   Box,
   Button,
@@ -11,11 +7,16 @@ import {
   Stack,
   Text,
 } from "@chakra-ui/react";
+import { withUrqlClient } from "next-urql";
 import { useState } from "react";
+import Layout from "../components/Layout";
+import UpdootSection from "../components/UpdootSection";
+import { usePostsQuery } from "../generated/graphql";
+import { createUrqlClient } from "../utils/createUrqlClient";
 
 const Index = () => {
   const [variables, setVariables] = useState({
-    limit: 10,
+    limit: 15,
     cursor: null as string | null,
   });
   const [{ data, fetching }] = usePostsQuery({
@@ -40,10 +41,14 @@ const Index = () => {
       ) : (
         <Stack spacing={8}>
           {data!.posts.posts.map((p) => (
-            <Box key={p._id} p={5} shadow="md" borderWidth={"1px"}>
-              <Heading fontSize={"xl"}>{p.title}</Heading>
-              <Text mt={4}>{p.textSnippet}</Text>
-            </Box>
+            <Flex key={p._id} gap={8} p={5} shadow="md" borderWidth={"1px"}>
+              <UpdootSection post={p} />
+              <Box>
+                <Heading fontSize={"xl"}>{p.title}</Heading>
+                <Text color={"gray.400"}>posted by {p.creator.username}</Text>
+                <Text mt={4}>{p.textSnippet}</Text>
+              </Box>
+            </Flex>
           ))}
         </Stack>
       )}
