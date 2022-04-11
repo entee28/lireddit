@@ -133,7 +133,7 @@ export class PostResolver {
   }
 
   @Query(() => Post, { nullable: true })
-  post(@Arg("id") _id: number): Promise<Post | null> {
+  post(@Arg("id", () => Int) _id: number): Promise<Post | null> {
     return Post.findOne({ where: { _id } });
   }
 

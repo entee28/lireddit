@@ -13,6 +13,9 @@ const UpdootSection = ({ post }: Props) => {
     <Flex direction={"column"} alignItems="center" justifyContent={"center"}>
       <IconButton
         onClick={() => {
+          if (post.voteStatus === 1) {
+            return;
+          }
           vote({
             postId: post._id,
             value: 1,
@@ -25,6 +28,9 @@ const UpdootSection = ({ post }: Props) => {
       {post.points}
       <IconButton
         onClick={() => {
+          if (post.voteStatus === -1) {
+            return;
+          }
           vote({
             postId: post._id,
             value: -1,
