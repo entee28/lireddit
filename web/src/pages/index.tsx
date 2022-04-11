@@ -3,16 +3,19 @@ import {
   Button,
   Flex,
   Heading,
-  Link,
   Stack,
   Text,
+  Link,
+  IconButton,
 } from "@chakra-ui/react";
 import { withUrqlClient } from "next-urql";
 import { useState } from "react";
 import Layout from "../components/Layout";
 import UpdootSection from "../components/UpdootSection";
-import { usePostsQuery } from "../generated/graphql";
+import { useDeletePostMutation, usePostsQuery } from "../generated/graphql";
 import { createUrqlClient } from "../utils/createUrqlClient";
+import NextLink from "next/link";
+import { DeleteIcon } from "@chakra-ui/icons";
 
 const Index = () => {
   const [variables, setVariables] = useState({
@@ -22,6 +25,7 @@ const Index = () => {
   const [{ data, fetching }] = usePostsQuery({
     variables,
   });
+  const [, deletePost] = useDeletePostMutation();
 
   if (!fetching && !data) {
     return <div>you got query failed for some reason</div>;
@@ -29,27 +33,38 @@ const Index = () => {
 
   return (
     <Layout>
-      <Flex align="center">
-        <Heading>LiReddit</Heading>
-        <Link ml={"auto"} href="/create-post">
-          create post
-        </Link>
-      </Flex>
-      <br />
       {!data && fetching ? (
         <div>loading...</div>
       ) : (
         <Stack spacing={8}>
-          {data!.posts.posts.map((p) => (
-            <Flex key={p._id} gap={8} p={5} shadow="md" borderWidth={"1px"}>
-              <UpdootSection post={p} />
-              <Box>
-                <Heading fontSize={"xl"}>{p.title}</Heading>
-                <Text color={"gray.400"}>posted by {p.creator.username}</Text>
-                <Text mt={4}>{p.textSnippet}</Text>
-              </Box>
-            </Flex>
-          ))}
+          {data!.posts.posts.map((p) =>
+            !p ? null : (
+              <Flex key={p._id} gap={8} p={5} shadow="md" borderWidth={"1px"}>
+                <UpdootSection post={p} />
+                <Box flex={1}>
+                  <Link>
+                    <NextLink href="/post/[id]" as={`/post/${p._id}`}>
+                      <Heading fontSize={"xl"}>{p.title}</Heading>
+                    </NextLink>
+                  </Link>
+                  <Text color={"gray.400"}>posted by {p.creator.username}</Text>
+                  <Flex align={"center"}>
+                    <Text flex={1} mt={4}>
+                      {p.textSnippet}
+                    </Text>
+                    <IconButton
+                      colorScheme={"red"}
+                      icon={<DeleteIcon />}
+                      aria-label={"delete post"}
+                      onClick={() => {
+                        deletePost({ id: p._id });
+                      }}
+                    />
+                  </Flex>
+                </Box>
+              </Flex>
+            )
+          )}
         </Stack>
       )}
       {data && data.posts.hasMore ? (

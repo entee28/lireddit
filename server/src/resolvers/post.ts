@@ -134,7 +134,7 @@ export class PostResolver {
 
   @Query(() => Post, { nullable: true })
   post(@Arg("id", () => Int) _id: number): Promise<Post | null> {
-    return Post.findOne({ where: { _id } });
+    return Post.findOne({ where: { _id }, relations: ["creator"] });
   }
 
   @Mutation(() => Post)
@@ -166,8 +166,12 @@ export class PostResolver {
   }
 
   @Mutation(() => Boolean)
-  async deletePost(@Arg("id") _id: number): Promise<boolean> {
-    await Post.delete(_id);
+  @UseMiddleware(isAuth)
+  async deletePost(
+    @Arg("id", () => Int) _id: number,
+    @Ctx() { req }: MyContext
+  ): Promise<boolean> {
+    await Post.delete({ _id, creatorId: req.session.userId });
     return true;
   }
 }
