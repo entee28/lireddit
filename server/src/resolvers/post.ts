@@ -150,19 +150,25 @@ export class PostResolver {
   }
 
   @Mutation(() => Post, { nullable: true })
+  @UseMiddleware(isAuth)
   async updatePost(
-    @Arg("id") _id: number,
-    @Arg("title", () => String, { nullable: true }) title: string
+    @Arg("id", () => Int) _id: number,
+    @Arg("title") title: string,
+    @Arg("text") text: string,
+    @Ctx() { req }: MyContext
   ): Promise<Post | null> {
-    const post = await Post.findOne({ where: { _id } });
-    if (!post) {
-      return null;
-    }
+    const result = await myDataSource
+      .createQueryBuilder()
+      .update(Post)
+      .set({ title, text })
+      .where('_id = :_id and "creatorId" = :creatorId', {
+        _id,
+        creatorId: req.session.userId,
+      })
+      .returning("*")
+      .execute();
 
-    if (typeof title !== "undefined") {
-      await Post.update({ _id }, { title });
-    }
-    return post;
+    return result.raw[0];
   }
 
   @Mutation(() => Boolean)
